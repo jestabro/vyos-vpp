@@ -1,6 +1,6 @@
 # VyOS implementation of Geneve interface
 #
-# Copyright (C) 2023-2025 VyOS Inc.
+# Copyright (C) 2023 VyOS Inc.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,6 +17,8 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 from vyos.vpp import VPPControl
+
+vpp = VPPControl()
 
 
 def show():
@@ -37,7 +39,6 @@ class GeneveInterface:
         self.dst_address = remote
         self.vni = vni
         self.kernel_interface = kernel_interface
-        self.vpp = VPPControl()
 
     def add(self):
         """Create Geneve interface
@@ -48,7 +49,7 @@ class GeneveInterface:
             a = GeneveInterface(ifname='geneve25', source_address='192.0.2.1', remote='203.0.113.25', vni=25)
             a.add()
         """
-        return self.vpp.api.geneve_add_del_tunnel2(
+        return vpp.api.geneve_add_del_tunnel2(
             is_add=True,
             local_address=self.src_address,
             remote_address=self.dst_address,
@@ -63,7 +64,7 @@ class GeneveInterface:
             a = GeneveInterface(ifname='vxlan25', source_address='192.0.2.1', remote='203.0.113.25', vni=25)
             a.delete()
         """
-        return self.vpp.api.geneve_add_del_tunnel2(
+        return vpp.api.geneve_add_del_tunnel2(
             is_add=False,
             local_address=self.src_address,
             remote_address=self.dst_address,
@@ -78,7 +79,7 @@ class GeneveInterface:
             a = GeneveInterface(ifname='vxlan25', source_address='192.0.2.1', remote='203.0.113.25', vni=25)
             a.kernel_add()
         """
-        self.vpp.lcp_pair_add(self.ifname, self.kernel_interface, 'tun')
+        vpp.lcp_pair_add(self.ifname, self.kernel_interface, 'tun')
 
     def kernel_delete(self):
         """Delete LCP pair
@@ -87,4 +88,4 @@ class GeneveInterface:
             a = GeneveInterface(ifname='vxlan25', source_address='192.0.2.1', remote='203.0.113.25', vni=25)
             a.kernel_delete()
         """
-        self.vpp.lcp_pair_del(self.ifname, self.kernel_interface)
+        vpp.lcp_pair_del(self.ifname, self.kernel_interface)

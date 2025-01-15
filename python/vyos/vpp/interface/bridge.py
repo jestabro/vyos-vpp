@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2023-2025 VyOS Inc.
+# Copyright (C) 2023-2024 VyOS Inc.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,6 +16,8 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 from vyos.vpp import VPPControl
+
+vpp = VPPControl()
 
 
 class BridgeInterface:
@@ -35,7 +37,6 @@ class BridgeInterface:
         self.learn = learn
         self.uu_flood = uu_flood
         self.arp_term = arp_term
-        self.vpp = VPPControl()
 
     def add(self):
         """Create Bridge interface
@@ -48,7 +49,7 @@ class BridgeInterface:
             a = BridgeInterface(ifname='br23')
             a.add()
         """
-        self.vpp.api.bridge_domain_add_del_v2(
+        vpp.api.bridge_domain_add_del_v2(
             is_add=True,
             bd_id=self.interface_suffix,
             flood=self.flood,
@@ -68,7 +69,7 @@ class BridgeInterface:
             a = BridgeInterface(ifname='br23')
             a.delete()
         """
-        self.vpp.api.bridge_domain_add_del_v2(is_add=False, bd_id=self.interface_suffix)
+        vpp.api.bridge_domain_add_del_v2(is_add=False, bd_id=self.interface_suffix)
 
     def add_member(self, member: str | int):
         """Add member to Bridge interface
@@ -93,9 +94,9 @@ class BridgeInterface:
         elif member.isdigit():
             member_if_index = int(member)
         else:
-            member_if_index = self.vpp.get_sw_if_index(member)
+            member_if_index = vpp.get_sw_if_index(member)
 
-        return self.vpp.api.sw_interface_set_l2_bridge(
+        return vpp.api.sw_interface_set_l2_bridge(
             rx_sw_if_index=member_if_index, bd_id=bridge_index, port_type=0
         )
 
@@ -120,8 +121,8 @@ class BridgeInterface:
         elif member.isdigit():
             member_if_index = int(member)
         else:
-            member_if_index = self.vpp.get_sw_if_index(member)
+            member_if_index = vpp.get_sw_if_index(member)
 
-        return self.vpp.api.sw_interface_set_l2_bridge(
+        return vpp.api.sw_interface_set_l2_bridge(
             rx_sw_if_index=member_if_index, bd_id=0, port_type=0
         )

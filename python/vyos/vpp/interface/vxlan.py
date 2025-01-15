@@ -1,6 +1,6 @@
 # VyOS implementation of VPP VXLAN interface
 #
-# Copyright (C) 2023-2025 VyOS Inc.
+# Copyright (C) 2023-2024 VyOS Inc.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,6 +17,8 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 from vyos.vpp import VPPControl
+
+vpp = VPPControl()
 
 
 def show():
@@ -39,7 +41,6 @@ class VXLANInterface:
         self.dst_address = remote
         self.vni = vni
         self.kernel_interface = kernel_interface
-        self.vpp = VPPControl()
 
     def add(self):
         """Create VXLAN interface
@@ -50,7 +51,7 @@ class VXLANInterface:
             a = VXLANInterface(ifname='vxlan23', source_address='192.0.2.1', remote='203.0.113.23', vni=23)
             a.add()
         """
-        self.vpp.api.vxlan_add_del_tunnel_v3(
+        vpp.api.vxlan_add_del_tunnel_v3(
             is_add=True,
             src_address=self.src_address,
             dst_address=self.dst_address,
@@ -67,7 +68,7 @@ class VXLANInterface:
             a = VXLANInterface(ifname='vxlan23', source_address='192.0.2.1', remote='203.0.113.23', vni=23)
             a.delete()
         """
-        return self.vpp.api.vxlan_add_del_tunnel_v3(
+        return vpp.api.vxlan_add_del_tunnel_v3(
             is_add=False,
             src_address=self.src_address,
             dst_address=self.dst_address,
@@ -82,7 +83,7 @@ class VXLANInterface:
             a = VXLANInterface(ifname='vxlan23', source_address='192.0.2.1', remote='203.0.113.23', vni=23, kernel_interface='vpptap10')
             a.kernel_add()
         """
-        self.vpp.lcp_pair_add(self.ifname, self.kernel_interface)
+        vpp.lcp_pair_add(self.ifname, self.kernel_interface)
 
     def kernel_delete(self):
         """Delete LCP pair
@@ -91,4 +92,4 @@ class VXLANInterface:
             a = VXLANInterface(ifname='vxlan23', source_address='192.0.2.1', remote='203.0.113.23', vni=23)
             a.kernel_delete()
         """
-        self.vpp.lcp_pair_del(self.ifname, self.kernel_interface)
+        vpp.lcp_pair_del(self.ifname, self.kernel_interface)

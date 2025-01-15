@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2023-2025 VyOS Inc.
+# Copyright (C) 2023 VyOS Inc.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,6 +18,8 @@
 from vyos.vpp import VPPControl
 from vyos.vpp.control_host import set_promisc
 
+vpp = VPPControl()
+
 
 class BondInterface:
     def __init__(
@@ -34,7 +36,6 @@ class BondInterface:
         self.load_balance = load_balance
         self.mac = mac
         self.kernel_interface = kernel_interface
-        self.vpp = VPPControl()
 
     def add(self):
         """Create Bond interface
@@ -52,9 +53,9 @@ class BondInterface:
         }
         if self.mac:
             create_args.update({'use_custom_mac': True, 'mac_address': self.mac})
-        self.vpp.api.bond_create2(**create_args)
+        vpp.api.bond_create2(**create_args)
         if self.kernel_interface:
-            self.vpp.lcp_pair_add(self.ifname, self.kernel_interface)
+            vpp.lcp_pair_add(self.ifname, self.kernel_interface)
 
     def delete(self):
         """Delete Bond interface
@@ -63,8 +64,8 @@ class BondInterface:
             a = BondInterface(ifname='bond0')
             a.delete()
         """
-        bond_if_index = self.vpp.get_sw_if_index(self.ifname)
-        self.vpp.api.bond_delete(sw_if_index=bond_if_index)
+        bond_if_index = vpp.get_sw_if_index(self.ifname)
+        vpp.api.bond_delete(sw_if_index=bond_if_index)
 
     def add_member(self, interface):
         """Add member to Bond interface
@@ -73,15 +74,13 @@ class BondInterface:
             a = BondInterface(ifname='bond0')
             a.add_member(interface='eth0')
         """
-        bond_if_index = self.vpp.get_sw_if_index(f'BondEthernet{self.instance}')
-        member_if_index = self.vpp.get_sw_if_index(interface)
-        member_if_type = self.vpp.get_sw_if_dev_type(interface)
-        self.vpp.api.bond_add_member(
+        bond_if_index = vpp.get_sw_if_index(f'BondEthernet{self.instance}')
+        member_if_index = vpp.get_sw_if_index(interface)
+        member_if_type = vpp.get_sw_if_dev_type(interface)
+        vpp.api.bond_add_member(
             bond_sw_if_index=bond_if_index, sw_if_index=member_if_index
         )
-        self.vpp.api.sw_interface_set_promisc(
-            sw_if_index=member_if_index, promisc_on=True
-        )
+        vpp.api.sw_interface_set_promisc(sw_if_index=member_if_index, promisc_on=True)
         if member_if_type == 'AF_XDP interface':
             set_promisc(f'defunct_{interface}', 'on')
 
@@ -92,8 +91,8 @@ class BondInterface:
             a = BondInterface(ifname='bond0')
             a.detach_member(interface='eth0')
         """
-        member_if_index = self.vpp.get_sw_if_index(interface)
-        self.vpp.api.bond_detach_member(sw_if_index=member_if_index)
+        member_if_index = vpp.get_sw_if_index(interface)
+        vpp.api.bond_detach_member(sw_if_index=member_if_index)
 
     def kernel_add(self):
         """Add LCP pair
@@ -102,7 +101,7 @@ class BondInterface:
             a = BondInterface(ifname='bond0', mode=5)
             a.kernel_add()
         """
-        self.vpp.lcp_pair_add(self.ifname, self.kernel_interface)
+        vpp.lcp_pair_add(self.ifname, self.kernel_interface)
 
     def kernel_delete(self):
         """Delete LCP pair
@@ -111,4 +110,4 @@ class BondInterface:
             a = BondInterface(ifname='bond0', mode=5)
             a.kernel_delete()
         """
-        self.vpp.lcp_pair_del(self.ifname, self.kernel_interface)
+        vpp.lcp_pair_del(self.ifname, self.kernel_interface)

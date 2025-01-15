@@ -1,6 +1,6 @@
 # VyOS implementation of VPP IPIP interface
 #
-# Copyright (C) 2023-2025 VyOS Inc.
+# Copyright (C) 2023 VyOS Inc.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,6 +17,8 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 from vyos.vpp import VPPControl
+
+vpp = VPPControl()
 
 
 def show():
@@ -36,7 +38,6 @@ class IPIPInterface:
         self.src_address = source_address
         self.dst_address = remote
         self.kernel_interface = kernel_interface
-        self.vpp = VPPControl()
 
     def add(self):
         """Create IPIP interface
@@ -46,7 +47,7 @@ class IPIPInterface:
             a = IPIPInterface(ifname='ipip0', source_address='192.0.2.1', remote='192.0.2.5')
             a.add()
         """
-        self.vpp.api.ipip_add_tunnel(
+        vpp.api.ipip_add_tunnel(
             tunnel={
                 'src': self.src_address,
                 'dst': self.dst_address,
@@ -61,8 +62,8 @@ class IPIPInterface:
             a = IPIPInterface(ifname='ipip0', source_address='192.0.2.1', remote='192.0.2.5')
             a.delete()
         """
-        ipip_if_index = self.vpp.get_sw_if_index(f'ipip{self.instance}')
-        return self.vpp.api.ipip_del_tunnel(sw_if_index=ipip_if_index)
+        ipip_if_index = vpp.get_sw_if_index(f'ipip{self.instance}')
+        return vpp.api.ipip_del_tunnel(sw_if_index=ipip_if_index)
 
     def kernel_add(self):
         """Add LCP pair
@@ -71,7 +72,7 @@ class IPIPInterface:
             a = IPIPInterface(ifname='ipip0', source_address='192.0.2.1', remote='192.0.2.5')
             a.kernel_add()
         """
-        self.vpp.lcp_pair_add(self.ifname, self.kernel_interface, 'tun')
+        vpp.lcp_pair_add(self.ifname, self.kernel_interface, 'tun')
 
     def kernel_delete(self):
         """Delete LCP pair
@@ -80,4 +81,4 @@ class IPIPInterface:
             a = IPIPInterface(ifname='ipip0', source_address='192.0.2.1', remote='192.0.2.5')
             a.kernel_delete()
         """
-        self.vpp.lcp_pair_del(self.ifname, self.kernel_interface)
+        vpp.lcp_pair_del(self.ifname, self.kernel_interface)

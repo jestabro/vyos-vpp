@@ -1,6 +1,6 @@
 # VyOS implementation of VPP Loopback interface
 #
-# Copyright (C) 2023-2025 VyOS Inc.
+# Copyright (C) 2023 VyOS Inc.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,6 +18,8 @@
 
 from vyos.vpp import VPPControl
 
+vpp = VPPControl()
+
 
 class LoopbackInterface:
     """Interface Loopback"""
@@ -26,7 +28,6 @@ class LoopbackInterface:
         self.instance = int(ifname.removeprefix('lo'))
         self.ifname = f'loop{self.instance}'
         self.kernel_interface = kernel_interface
-        self.vpp = VPPControl()
 
     def add(self):
         """Create Loopback interface
@@ -36,9 +37,7 @@ class LoopbackInterface:
             a = LoopbackInterface(ifname='lo1')
             a.add()
         """
-        self.vpp.api.create_loopback_instance(
-            is_specified=True, user_instance=self.instance
-        )
+        vpp.api.create_loopback_instance(is_specified=True, user_instance=self.instance)
 
     def delete(self):
         """Delete Loopback interface
@@ -47,8 +46,8 @@ class LoopbackInterface:
             a = LoopbackInterface(ifname='lo1')
             a.delete()
         """
-        loopback_if_index = self.vpp.get_sw_if_index(f'loop{self.instance}')
-        return self.vpp.api.delete_loopback(sw_if_index=loopback_if_index)
+        loopback_if_index = vpp.get_sw_if_index(f'loop{self.instance}')
+        return vpp.api.delete_loopback(sw_if_index=loopback_if_index)
 
     def kernel_add(self):
         """Add LCP pair
@@ -57,7 +56,7 @@ class LoopbackInterface:
             a = LoopbackInterface(ifname='lo1')
             a.kernel_add()
         """
-        self.vpp.lcp_pair_add(self.ifname, self.kernel_interface)
+        vpp.lcp_pair_add(self.ifname, self.kernel_interface)
 
     def kernel_delete(self):
         """Delete LCP pair
@@ -66,4 +65,4 @@ class LoopbackInterface:
             a = LoopbackInterface(ifname='lo1')
             a.kernel_delete()
         """
-        self.vpp.lcp_pair_del(self.ifname, self.kernel_interface)
+        vpp.lcp_pair_del(self.ifname, self.kernel_interface)
